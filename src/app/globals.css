@@ -9,16 +9,17 @@
 }
 
 @theme inline {
-  --color-background: #0a0a0a;
-  --color-foreground: #ededed;
-  --color-card: #141414;
-  --color-card-border: #262626;
-  --color-muted: #888888;
-  --color-accent: #6366f1;
-  --color-accent-light: #818cf8;
-  --color-green: #22c55e;
-  --color-red: #ef4444;
-  --color-yellow: #eab308;
+  --color-background: #141414;
+  --color-foreground: #e5e5e5;
+  --color-card: #1f1f1f;
+  --color-card-hover: #2a2a2a;
+  --color-card-border: #333333;
+  --color-muted: #808080;
+  --color-accent: #e50914;
+  --color-accent-light: #ff2d2d;
+  --color-green: #46d369;
+  --color-red: #e50914;
+  --color-yellow: #f5c518;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -31,15 +32,25 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: "VFC Fantomen", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 22px;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-card-border);
-  border-radius: 3px;
+  background: #444;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Netflix-style selection */
+::selection {
+  background: #e50914;
+  color: white;
 }

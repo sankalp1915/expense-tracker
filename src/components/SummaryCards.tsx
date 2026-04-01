@@ -18,18 +18,18 @@ export default function SummaryCards({
   balance: number;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div className="bg-card border border-card-border rounded-xl p-5">
-        <p className="text-muted text-sm mb-1">Salary</p>
-        <p className="text-2xl font-bold text-accent-light">{formatCurrency(salary)}</p>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="bg-card rounded-xl p-6 border border-card-border hover:border-card-hover transition-colors">
+        <p className="text-muted text-lg uppercase tracking-wider mb-2">Salary</p>
+        <p className="text-4xl md:text-5xl font-bold text-green">{formatCurrency(salary)}</p>
       </div>
-      <div className="bg-card border border-card-border rounded-xl p-5">
-        <p className="text-muted text-sm mb-1">Total Expenses</p>
-        <p className="text-2xl font-bold text-red">{formatCurrency(totalExpenses)}</p>
+      <div className="bg-card rounded-xl p-6 border border-card-border hover:border-card-hover transition-colors">
+        <p className="text-muted text-lg uppercase tracking-wider mb-2">Total Expenses</p>
+        <p className="text-4xl md:text-5xl font-bold text-accent">{formatCurrency(totalExpenses)}</p>
       </div>
-      <div className="bg-card border border-card-border rounded-xl p-5">
-        <p className="text-muted text-sm mb-1">Balance Left</p>
-        <p className={`text-2xl font-bold ${balance >= 0 ? "text-green" : "text-red"}`}>
+      <div className="bg-card rounded-xl p-6 border border-card-border hover:border-card-hover transition-colors">
+        <p className="text-muted text-lg uppercase tracking-wider mb-2">Balance Left</p>
+        <p className={`text-4xl md:text-5xl font-bold ${balance >= 0 ? "text-green" : "text-accent"}`}>
           {formatCurrency(balance)}
         </p>
       </div>

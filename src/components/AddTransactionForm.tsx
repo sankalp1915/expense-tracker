@@ -30,7 +30,7 @@ export default function AddTransactionForm({
         amount: parseFloat(amount),
         merchant_name: merchant,
         date,
-        category: category || undefined, // let backend auto-categorize if empty
+        category: category || undefined,
         note,
       }),
     });
@@ -44,13 +44,13 @@ export default function AddTransactionForm({
   };
 
   const inputClass =
-    "w-full bg-background border border-card-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent";
+    "w-full bg-[#0a0a0a] border border-card-border rounded-md px-4 py-3 text-base text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors";
 
   return (
-    <div className="bg-card border border-card-border rounded-xl p-5">
-      <h3 className="text-sm font-medium text-muted mb-4">Add Transaction</h3>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+    <div className="bg-card border border-card-border rounded-xl p-6">
+      <h3 className="text-lg font-bold text-foreground uppercase tracking-wider mb-5">Add Transaction</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
           <input
             type="number"
             placeholder="Amount"
@@ -70,7 +70,7 @@ export default function AddTransactionForm({
             required
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <input
             type="date"
             value={date}
@@ -101,7 +101,7 @@ export default function AddTransactionForm({
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-accent hover:bg-accent-light text-white font-medium py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
+          className="w-full bg-accent hover:bg-accent-light text-white font-bold py-3.5 rounded-md text-lg uppercase tracking-wider transition-all duration-200 disabled:opacity-50 shadow-lg shadow-accent/20 hover:shadow-accent/40"
         >
           {submitting ? "Adding..." : "Add Expense"}
         </button>

@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import SummaryCards from "@/components/SummaryCards";
+import SpendingRing from "@/components/SpendingRing";
 import CategoryChart from "@/components/CategoryChart";
+import CategoryBreakdown from "@/components/CategoryBreakdown";
 import TransactionTable from "@/components/TransactionTable";
 import AddTransactionForm from "@/components/AddTransactionForm";
 import SalaryInput from "@/components/SalaryInput";
 import MonthSelector from "@/components/MonthSelector";
 import KeywordManager from "@/components/KeywordManager";
 
-interface CategoryBreakdown {
+interface CategoryBreakdownData {
   category: string;
   total: number;
 }
@@ -30,7 +32,7 @@ interface Summary {
   salary: number;
   totalExpenses: number;
   balance: number;
-  categoryBreakdown: CategoryBreakdown[];
+  categoryBreakdown: CategoryBreakdownData[];
   availableMonths: string[];
 }
 
@@ -69,29 +71,29 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto">
+    <main className="min-h-screen p-5 md:p-10 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Expense Tracker
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+        <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-accent">
+          EXPENSE TRACKER
         </h1>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-6 py-3 rounded-md text-base font-bold tracking-wide uppercase transition-all duration-200 ${
               activeTab === "dashboard"
-                ? "bg-accent text-white"
-                : "bg-card border border-card-border text-muted hover:text-foreground"
+                ? "bg-accent text-white shadow-lg shadow-accent/30"
+                : "bg-card border border-card-border text-muted hover:text-foreground hover:bg-card-hover"
             }`}
           >
             Dashboard
           </button>
           <button
             onClick={() => setActiveTab("keywords")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-6 py-3 rounded-md text-base font-bold tracking-wide uppercase transition-all duration-200 ${
               activeTab === "keywords"
-                ? "bg-accent text-white"
-                : "bg-card border border-card-border text-muted hover:text-foreground"
+                ? "bg-accent text-white shadow-lg shadow-accent/30"
+                : "bg-card border border-card-border text-muted hover:text-foreground hover:bg-card-hover"
             }`}
           >
             Keywords
@@ -104,7 +106,7 @@ export default function Home() {
       ) : (
         <>
           {/* Month selector + Salary */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <MonthSelector
               month={month}
               onChange={setMonth}
@@ -114,24 +116,40 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <div className="text-center text-muted py-20">Loading...</div>
+            <div className="text-center text-muted py-20 text-xl">Loading...</div>
           ) : (
             <>
-              {/* Summary Cards */}
+              {/* Row 1: Summary Cards */}
               <SummaryCards
                 salary={summary?.salary ?? 0}
                 totalExpenses={summary?.totalExpenses ?? 0}
                 balance={summary?.balance ?? 0}
               />
 
-              {/* Chart + Add Form */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <CategoryChart breakdown={summary?.categoryBreakdown ?? []} />
+              {/* Row 2: Spending Ring + Donut Chart */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <SpendingRing
+                  salary={summary?.salary ?? 0}
+                  totalExpenses={summary?.totalExpenses ?? 0}
+                  balance={summary?.balance ?? 0}
+                />
+                <CategoryChart
+                  breakdown={summary?.categoryBreakdown ?? []}
+                  totalExpenses={summary?.totalExpenses ?? 0}
+                />
+              </div>
+
+              {/* Row 3: Category Breakdown + Add Form */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <CategoryBreakdown
+                  breakdown={summary?.categoryBreakdown ?? []}
+                  totalExpenses={summary?.totalExpenses ?? 0}
+                />
                 <AddTransactionForm month={month} onAdd={fetchData} />
               </div>
 
-              {/* Transaction Table */}
-              <div className="mt-6">
+              {/* Row 4: Transactions */}
+              <div className="mt-8">
                 <TransactionTable
                   transactions={transactions}
                   onDelete={handleDeleteTransaction}
