@@ -20,16 +20,23 @@ export async function GET(req: NextRequest) {
     // Get all transactions for this month
     const { data: transactions } = await supabase
       .from("transactions")
-      .select("amount, category")
+      .select("amount, category, type")
       .eq("month", month);
 
-    const totalExpenses = (transactions || []).reduce((sum, t) => sum + Number(t.amount), 0);
-
-    // Build category breakdown
+    let totalExpenses = 0;
+    let totalCredits = 0;
     const catMap = new Map<string, number>();
+
     for (const t of transactions || []) {
-      catMap.set(t.category, (catMap.get(t.category) || 0) + Number(t.amount));
+      const amt = Number(t.amount);
+      if (t.type === "credit") {
+        totalCredits += amt;
+      } else {
+        totalExpenses += amt;
+        catMap.set(t.category, (catMap.get(t.category) || 0) + amt);
+      }
     }
+
     const categoryBreakdown = CATEGORIES.map((cat) => ({
       category: cat,
       total: catMap.get(cat) ?? 0,
@@ -55,7 +62,8 @@ export async function GET(req: NextRequest) {
       month,
       salary,
       totalExpenses,
-      balance: salary - totalExpenses,
+      totalCredits,
+      balance: salary + totalCredits - totalExpenses,
       categoryBreakdown,
       availableMonths,
     });

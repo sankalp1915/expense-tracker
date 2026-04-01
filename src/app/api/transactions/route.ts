@@ -5,7 +5,8 @@ import { supabase, categorize, getMonthFromDate, CATEGORIES, Category } from "@/
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, merchant_name, date, category, note } = body;
+    const { amount, merchant_name, date, category, note, type } = body;
+    const txType = type === "credit" ? "credit" : "expense";
 
     if (!amount || !merchant_name || !date) {
       return NextResponse.json(
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
         date,
         month,
         note: note || "",
+        type: txType,
       })
       .select()
       .single();

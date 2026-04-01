@@ -7,6 +7,7 @@ interface Transaction {
   category: string;
   date: string;
   note: string;
+  type: string;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -69,8 +70,10 @@ export default function TransactionTable({
                     {tx.category}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-right font-mono text-accent text-xl font-bold">
-                  -{new Intl.NumberFormat("en-IN").format(tx.amount)}
+                <td className={`px-5 py-4 text-right font-mono text-xl font-bold ${
+                  tx.type === "credit" ? "text-green" : "text-accent"
+                }`}>
+                  {tx.type === "credit" ? "+" : "-"}{new Intl.NumberFormat("en-IN").format(tx.amount)}
                 </td>
                 <td className="px-5 py-4 text-center">
                   <button

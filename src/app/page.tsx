@@ -24,6 +24,7 @@ interface Transaction {
   date: string;
   month: string;
   note: string;
+  type: string;
   created_at: string;
 }
 
@@ -31,6 +32,7 @@ interface Summary {
   month: string;
   salary: number;
   totalExpenses: number;
+  totalCredits: number;
   balance: number;
   categoryBreakdown: CategoryBreakdownData[];
   availableMonths: string[];
@@ -123,6 +125,7 @@ export default function Home() {
               <SummaryCards
                 salary={summary?.salary ?? 0}
                 totalExpenses={summary?.totalExpenses ?? 0}
+                totalCredits={summary?.totalCredits ?? 0}
                 balance={summary?.balance ?? 0}
               />
 

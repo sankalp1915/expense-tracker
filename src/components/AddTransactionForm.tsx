@@ -11,6 +11,7 @@ export default function AddTransactionForm({
   month: string;
   onAdd: () => void;
 }) {
+  const [type, setType] = useState<"expense" | "credit">("expense");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
   const [category, setCategory] = useState("");
@@ -32,6 +33,7 @@ export default function AddTransactionForm({
         date,
         category: category || undefined,
         note,
+        type,
       }),
     });
 
@@ -50,6 +52,32 @@ export default function AddTransactionForm({
     <div className="bg-card border border-card-border rounded-xl p-6">
       <h3 className="text-lg font-bold text-foreground uppercase tracking-wider mb-5">Add Transaction</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Type toggle */}
+        <div className="flex rounded-md overflow-hidden border border-card-border">
+          <button
+            type="button"
+            onClick={() => setType("expense")}
+            className={`flex-1 py-3 text-base font-bold uppercase tracking-wider transition-all ${
+              type === "expense"
+                ? "bg-accent text-white"
+                : "bg-[#0a0a0a] text-muted hover:text-foreground"
+            }`}
+          >
+            Expense
+          </button>
+          <button
+            type="button"
+            onClick={() => setType("credit")}
+            className={`flex-1 py-3 text-base font-bold uppercase tracking-wider transition-all ${
+              type === "credit"
+                ? "bg-green text-white"
+                : "bg-[#0a0a0a] text-muted hover:text-foreground"
+            }`}
+          >
+            Credit
+          </button>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <input
             type="number"
@@ -63,7 +91,7 @@ export default function AddTransactionForm({
           />
           <input
             type="text"
-            placeholder="Merchant name"
+            placeholder={type === "credit" ? "Source (e.g. Refund)" : "Merchant name"}
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
             className={inputClass}
@@ -83,7 +111,7 @@ export default function AddTransactionForm({
             onChange={(e) => setCategory(e.target.value)}
             className={inputClass}
           >
-            <option value="">Auto-detect category</option>
+            <option value="">{type === "credit" ? "Category (optional)" : "Auto-detect category"}</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -101,9 +129,13 @@ export default function AddTransactionForm({
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-accent hover:bg-accent-light text-white font-bold py-3.5 rounded-md text-lg uppercase tracking-wider transition-all duration-200 disabled:opacity-50 shadow-lg shadow-accent/20 hover:shadow-accent/40"
+          className={`w-full text-white font-bold py-3.5 rounded-md text-lg uppercase tracking-wider transition-all duration-200 disabled:opacity-50 shadow-lg ${
+            type === "credit"
+              ? "bg-green hover:bg-green/80 shadow-green/20 hover:shadow-green/40"
+              : "bg-accent hover:bg-accent-light shadow-accent/20 hover:shadow-accent/40"
+          }`}
         >
-          {submitting ? "Adding..." : "Add Expense"}
+          {submitting ? "Adding..." : type === "credit" ? "Add Credit" : "Add Expense"}
         </button>
       </form>
     </div>
