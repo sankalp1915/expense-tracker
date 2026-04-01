@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, categorize, getMonthFromDate, CATEGORIES, Category } from "@/lib/db";
+import { supabase, categorize, getMonthFromDate, CATEGORIES, Category } from "@/lib/db";
 
 // POST /api/transactions — the Tasker / automation endpoint
 export async function POST(req: NextRequest) {
@@ -18,36 +18,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "amount must be a positive number" }, { status: 400 });
     }
 
-    // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json({ error: "date must be in YYYY-MM-DD format" }, { status: 400 });
     }
 
     const month = getMonthFromDate(date);
     const resolvedCategory: Category =
-      category && CATEGORIES.includes(category) ? category : categorize(merchant_name);
+      category && CATEGORIES.includes(category) ? category : await categorize(merchant_name);
 
-    const db = getDb();
-    const stmt = db.prepare(
-      "INSERT INTO transactions (amount, merchant_name, category, date, month, note) VALUES (?, ?, ?, ?, ?, ?)"
-    );
-    const result = stmt.run(amount, merchant_name, resolvedCategory, date, month, note || "");
+    const { data, error } = await supabase
+      .from("transactions")
+      .insert({
+        amount,
+        merchant_name,
+        category: resolvedCategory,
+        date,
+        month,
+        note: note || "",
+      })
+      .select()
+      .single();
 
-    return NextResponse.json(
-      {
-        success: true,
-        transaction: {
-          id: result.lastInsertRowid,
-          amount,
-          merchant_name,
-          category: resolvedCategory,
-          date,
-          month,
-          note: note || "",
-        },
-      },
-      { status: 201 }
-    );
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, transaction: data }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -62,12 +58,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "month query param required (YYYY-MM)" }, { status: 400 });
     }
 
-    const db = getDb();
-    const transactions = db
-      .prepare("SELECT * FROM transactions WHERE month = ? ORDER BY date DESC, id DESC")
-      .all(month);
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("month", month)
+      .order("date", { ascending: false })
+      .order("id", { ascending: false });
 
-    return NextResponse.json({ transactions });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ transactions: data });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -82,8 +84,14 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "id query param required" }, { status: 400 });
     }
 
-    const db = getDb();
-    db.prepare("DELETE FROM transactions WHERE id = ?").run(id);
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", parseInt(id));
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

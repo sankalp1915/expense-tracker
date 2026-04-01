@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, CATEGORIES } from "@/lib/db";
+import { supabase, CATEGORIES } from "@/lib/db";
 
 // GET /api/summary?month=YYYY-MM
 export async function GET(req: NextRequest) {
@@ -9,45 +9,55 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "month query param required" }, { status: 400 });
     }
 
-    const db = getDb();
-
-    const salaryRow = db.prepare("SELECT amount FROM salary WHERE month = ?").get(month) as {
-      amount: number;
-    } | undefined;
+    // Get salary
+    const { data: salaryRow } = await supabase
+      .from("salary")
+      .select("amount")
+      .eq("month", month)
+      .single();
     const salary = salaryRow?.amount ?? 0;
 
-    const totalRow = db
-      .prepare("SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE month = ?")
-      .get(month) as { total: number };
-    const totalExpenses = totalRow.total;
+    // Get all transactions for this month
+    const { data: transactions } = await supabase
+      .from("transactions")
+      .select("amount, category")
+      .eq("month", month);
 
-    const categoryBreakdown = db
-      .prepare(
-        "SELECT category, COALESCE(SUM(amount), 0) as total FROM transactions WHERE month = ? GROUP BY category ORDER BY total DESC"
-      )
-      .all(month) as { category: string; total: number }[];
+    const totalExpenses = (transactions || []).reduce((sum, t) => sum + Number(t.amount), 0);
 
-    // Ensure all categories present
-    const catMap = new Map(categoryBreakdown.map((c) => [c.category, c.total]));
-    const fullBreakdown = CATEGORIES.map((cat) => ({
+    // Build category breakdown
+    const catMap = new Map<string, number>();
+    for (const t of transactions || []) {
+      catMap.set(t.category, (catMap.get(t.category) || 0) + Number(t.amount));
+    }
+    const categoryBreakdown = CATEGORIES.map((cat) => ({
       category: cat,
       total: catMap.get(cat) ?? 0,
     }));
 
-    // Available months for history navigation
-    const months = db
-      .prepare(
-        "SELECT DISTINCT month FROM (SELECT month FROM transactions UNION SELECT month FROM salary) ORDER BY month DESC"
-      )
-      .all() as { month: string }[];
+    // Get available months
+    const { data: txMonths } = await supabase
+      .from("transactions")
+      .select("month")
+      .order("month", { ascending: false });
+
+    const { data: salMonths } = await supabase
+      .from("salary")
+      .select("month")
+      .order("month", { ascending: false });
+
+    const allMonths = new Set<string>();
+    for (const r of txMonths || []) allMonths.add(r.month);
+    for (const r of salMonths || []) allMonths.add(r.month);
+    const availableMonths = Array.from(allMonths).sort().reverse();
 
     return NextResponse.json({
       month,
       salary,
       totalExpenses,
       balance: salary - totalExpenses,
-      categoryBreakdown: fullBreakdown,
-      availableMonths: months.map((m) => m.month),
+      categoryBreakdown,
+      availableMonths,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";

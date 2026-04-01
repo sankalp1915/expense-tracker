@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, CATEGORIES } from "@/lib/db";
+import { supabase, CATEGORIES } from "@/lib/db";
 
 // GET /api/keywords
 export async function GET() {
   try {
-    const db = getDb();
-    const keywords = db.prepare("SELECT * FROM keywords ORDER BY category, keyword").all();
-    return NextResponse.json({ keywords });
+    const { data, error } = await supabase
+      .from("keywords")
+      .select("*")
+      .order("category")
+      .order("keyword");
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ keywords: data });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -23,11 +31,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (!CATEGORIES.includes(category)) {
-      return NextResponse.json({ error: `Invalid category. Must be one of: ${CATEGORIES.join(", ")}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Invalid category. Must be one of: ${CATEGORIES.join(", ")}` },
+        { status: 400 }
+      );
     }
 
-    const db = getDb();
-    db.prepare("INSERT OR REPLACE INTO keywords (keyword, category) VALUES (?, ?)").run(keyword.toLowerCase(), category);
+    const { error } = await supabase
+      .from("keywords")
+      .upsert({ keyword: keyword.toLowerCase(), category }, { onConflict: "keyword" });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -42,8 +58,15 @@ export async function DELETE(req: NextRequest) {
     const id = req.nextUrl.searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-    const db = getDb();
-    db.prepare("DELETE FROM keywords WHERE id = ?").run(id);
+    const { error } = await supabase
+      .from("keywords")
+      .delete()
+      .eq("id", parseInt(id));
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";

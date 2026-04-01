@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabase } from "@/lib/db";
 
 // GET /api/salary?month=YYYY-MM
 export async function GET(req: NextRequest) {
@@ -9,12 +9,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "month query param required" }, { status: 400 });
     }
 
-    const db = getDb();
-    const row = db.prepare("SELECT * FROM salary WHERE month = ?").get(month) as {
-      amount: number;
-    } | undefined;
+    const { data } = await supabase
+      .from("salary")
+      .select("amount")
+      .eq("month", month)
+      .single();
 
-    return NextResponse.json({ salary: row?.amount ?? 0 });
+    return NextResponse.json({ salary: data?.amount ?? 0 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -30,10 +31,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "month and amount required" }, { status: 400 });
     }
 
-    const db = getDb();
-    db.prepare(
-      "INSERT INTO salary (month, amount) VALUES (?, ?) ON CONFLICT(month) DO UPDATE SET amount = excluded.amount"
-    ).run(month, amount);
+    const { error } = await supabase
+      .from("salary")
+      .upsert({ month, amount }, { onConflict: "month" });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, month, amount });
   } catch (err: unknown) {
