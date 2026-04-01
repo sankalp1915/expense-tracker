@@ -13,8 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Expense Tracker",
+  title: "XpenseTrack — Smart Web Expense Management",
   description: "Monthly expense tracker with auto-categorization",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
