@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 interface Transaction {
   id: number;
   amount: number;
@@ -9,6 +11,8 @@ interface Transaction {
   note: string;
   type: string;
 }
+
+const CATEGORIES = ["Rent", "Food", "Travel", "Personal", "Medicine", "Settlement", "Not Necessary"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   Rent: "bg-indigo-500/20 text-indigo-300",
@@ -23,10 +27,24 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function TransactionTable({
   transactions,
   onDelete,
+  onUpdate,
 }: {
   transactions: Transaction[];
   onDelete: (id: number) => void;
+  onUpdate: () => void;
 }) {
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const handleCategoryChange = async (id: number, category: string) => {
+    await fetch("/api/transactions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, category }),
+    });
+    setEditingId(null);
+    onUpdate();
+  };
+
   if (transactions.length === 0) {
     return (
       <div className="bg-card border border-card-border rounded-xl p-10 text-center text-muted text-lg">
@@ -62,13 +80,29 @@ export default function TransactionTable({
                   {tx.note && <div className="text-sm text-muted mt-1">{tx.note}</div>}
                 </td>
                 <td className="px-5 py-4">
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
-                      CATEGORY_COLORS[tx.category] || "bg-gray-500/20 text-gray-300"
-                    }`}
-                  >
-                    {tx.category}
-                  </span>
+                  {editingId === tx.id ? (
+                    <select
+                      defaultValue={tx.category}
+                      onChange={(e) => handleCategoryChange(tx.id, e.target.value)}
+                      onBlur={() => setEditingId(null)}
+                      autoFocus
+                      className="bg-[#0a0a0a] border border-accent rounded-md px-2 py-1 text-sm text-foreground focus:outline-none"
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <button
+                      onClick={() => setEditingId(tx.id)}
+                      title="Click to change category"
+                      className={`inline-block px-3 py-1 rounded-full text-sm font-bold cursor-pointer hover:ring-2 hover:ring-accent/50 transition-all ${
+                        CATEGORY_COLORS[tx.category] || "bg-gray-500/20 text-gray-300"
+                      }`}
+                    >
+                      {tx.category} ✎
+                    </button>
+                  )}
                 </td>
                 <td className={`px-5 py-4 text-right font-mono text-xl font-bold ${
                   tx.type === "credit" ? "text-green" : "text-accent"

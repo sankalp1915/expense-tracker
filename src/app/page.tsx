@@ -156,6 +156,7 @@ export default function Home() {
                 <TransactionTable
                   transactions={transactions}
                   onDelete={handleDeleteTransaction}
+                  onUpdate={fetchData}
                 />
               </div>
             </>

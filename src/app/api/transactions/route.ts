@@ -78,6 +78,35 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// PATCH /api/transactions  { id, category }
+export async function PATCH(req: NextRequest) {
+  try {
+    const { id, category } = await req.json();
+
+    if (!id || !category) {
+      return NextResponse.json({ error: "id and category required" }, { status: 400 });
+    }
+
+    if (!CATEGORIES.includes(category)) {
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from("transactions")
+      .update({ category })
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 // DELETE /api/transactions?id=123
 export async function DELETE(req: NextRequest) {
   try {
